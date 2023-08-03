@@ -18,12 +18,13 @@
 // #include "tudat/astro/aerodynamics/testApolloCapsuleCoefficients.h"
 #include "tudat/astro/electromagnetism/radiationPressureInterface.h"
 // #include "tudat/astro/ephemerides/constantRotationalEphemeris.h"
-// #include "tudat/io/basicInputOutput.h"
+#include "tudat/io/basicInputOutput.h"
 // #include "tudat/math/interpolators/linearInterpolator.h"
 #include "tudat/simulation/environment_setup/createBodies.h"
 #include "tudat/simulation/environment_setup/defaultBodies.h"
 // #include "tudat/simulation/estimation_setup/createNumericalSimulator.h"
 
+#define deg2Rad unit_conversions::convertDegreesToRadians
 #define ENABLE_LOGGING
 #include "logging.h"
 
@@ -53,7 +54,6 @@ const std::vector<std::string> RAD_PRES_OCCULTING_BODIES{"Earth"};
 
 // Magic numbers
 const double ENV_SETUP_BUFFER = 300.0;
-
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //                                MAIN FUNCTION
@@ -177,8 +177,10 @@ int main()
     // Define initial state
     LOG("Defining initial state");
     WARN("Not implemented yet");
-    
-
+    Eigen::Vector6d InitialState = orbital_element_conversions::convertKeplerianToCartesianElements(
+        7500.0e3, 0.1, deg2Rad(85.3), deg2Rad(85.3), deg2Rad(85.3), deg2Rad(85.3),
+        bodies.at("Earth")->getGravityFieldModel()->getGravitationalParameter()
+    );
 
     // Define Dependent Variables to save
     LOG("Defining dependent variables to save");
@@ -187,8 +189,6 @@ int main()
     // Create propagator settings
     LOG("Creating integrator and propagator settings");
     WARN("Not implemented yet");
-
-    
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //                              ORBIT PROPAGATION
