@@ -1,6 +1,7 @@
 # My additions
 **/build
 *err
+*log
 **/.vscode 
 
 # ------ Template C++ -----
