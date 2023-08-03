@@ -37,23 +37,35 @@ using namespace tudat;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //                   GENERAL CONFIGURATION AND MAGIC NUMBERS
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Using anonymous namespace to avoid cluttering the global namespace.
+namespace {
 
-const double START_EPOCH_DAYS = 0.0;
-const double END_EPOCH_DAYS = 1.0;
+const double simulationStartEpoch = 0.0 * physical_constants::JULIAN_DAY;
+const double simulationEndEpoch = 1.0 * physical_constants::JULIAN_DAY;
 
 // DelfiC3
+const std::string dC3Name = "DelfiC3";
+const double dC3Mass = 400.0;
+const double dC3ReferenceArea = 4.0;
+const double dC3DragCoeff = 1.2;
+const double dC3RadPressArea = 4.0;
+const double dC3RadPressCoeff = 1.2;
+const std::vector<std::string> dC3RadPressOccultingBodies = {"Earth"};
 
-const std::string C3_NAME = "DelfiC3";
-const double C3_MASS = 400.0;
-const double C3_REFERENCE_AREA = 4.0;
-const double C3_DRAG_COEFFICIENT = 1.2;
-const double C3_RAD_PRES_AREA = 4.0;
-const double C3_RAD_PRES_COEFFICIENT = 1.2;
-
-const std::vector<std::string> RAD_PRES_OCCULTING_BODIES{"Earth"};
+// Initial condiation
+const double dC3InitialSemiMajorAxis = 7500.0e3;
+const double dC3InitialEccentricity = 0.1;
+const double dC3InitialInclination = deg2Rad(85.3);
+const double dC3InitialRAAN = deg2Rad(235.7);
+const double dC3InitialArgOfPeri = deg2Rad(23.4);
+const double C3_INITIAL_TRUE_ANOMALY = deg2Rad(139.87);
 
 // Magic numbers
-const double ENV_SETUP_BUFFER = 300.0;
+const double envSetupTimeBuffer = 300.0;
+
+} // namespace
+
+//
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //                                MAIN FUNCTION
@@ -66,10 +78,6 @@ int main()
 
     // Load Spice kernel with gravitational parameters.
     spice_interface::loadStandardSpiceKernels();
-
-    // Set simulation start and end epoch
-    const double simulationStartEpoch = START_EPOCH_DAYS * physical_constants::JULIAN_DAY;
-    const double simulationEndEpoch = END_EPOCH_DAYS * physical_constants::JULIAN_DAY;
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //                              ENVIRONMENT SETUP
@@ -86,8 +94,11 @@ int main()
 
     // Create default body settings, usually from `spice`.
     simulation_setup::BodyListSettings bodySettings = simulation_setup::getDefaultBodySettings(
-        bodiesToCreate, simulationStartEpoch - ENV_SETUP_BUFFER,
-        simulationEndEpoch + ENV_SETUP_BUFFER, frameOrigin, frameOrientation
+        bodiesToCreate,
+        simulationStartEpoch - envSetupTimeBuffer,
+        simulationEndEpoch + envSetupTimeBuffer,
+        frameOrigin,
+        frameOrientation
     );
 
     // Create system of bodies
@@ -96,33 +107,29 @@ int main()
 
     // Create vehicle object.
     LOG("Creating vehicle objects");
-    bodies.createEmptyBody(C3_NAME);
-    bodies.at(C3_NAME)->setConstantBodyMass(C3_MASS);
+    bodies.createEmptyBody(dC3Name);
+    bodies.at(dC3Name)->setConstantBodyMass(dC3Mass);
 
     // Create aerodynamic interface settings
     LOG("Creating aerodynamic interface settings");
-    std::shared_ptr<simulation_setup::AerodynamicCoefficientSettings>
-        aerodynamicCoefficientSettings = simulation_setup::constantAerodynamicCoefficientSettings(
-            C3_REFERENCE_AREA, Eigen::Vector3d(C3_DRAG_COEFFICIENT, 0.0, 0.0)
+    std::shared_ptr<simulation_setup::AerodynamicCoefficientSettings> aerodynamicCoefficientSettings =
+        simulation_setup::constantAerodynamicCoefficientSettings(
+            dC3ReferenceArea, Eigen::Vector3d(dC3DragCoeff, 0.0, 0.0)
         );
 
-    bodies.at(C3_NAME)->setAerodynamicCoefficientInterface(
-        simulation_setup::createAerodynamicCoefficientInterface(
-            aerodynamicCoefficientSettings, C3_NAME, bodies
-        )
+    bodies.at(dC3Name)->setAerodynamicCoefficientInterface(
+        simulation_setup::createAerodynamicCoefficientInterface(aerodynamicCoefficientSettings, dC3Name, bodies)
     );
 
     // Create radiation pressure settings
     LOG("Creating radiation pressure settings");
-    std::shared_ptr<simulation_setup::RadiationPressureInterfaceSettings>
-        C3RadiationPressureSettings = simulation_setup::cannonBallRadiationPressureSettings(
-            "Sun", C3_RAD_PRES_AREA, C3_RAD_PRES_COEFFICIENT, RAD_PRES_OCCULTING_BODIES
+    std::shared_ptr<simulation_setup::RadiationPressureInterfaceSettings> C3RadiationPressureSettings =
+        simulation_setup::cannonBallRadiationPressureSettings(
+            "Sun", dC3RadPressArea, dC3RadPressCoeff, dC3RadPressOccultingBodies
         );
 
-    bodies.at(C3_NAME)->setRadiationPressureInterface(
-        "Sun", simulation_setup::createRadiationPressureInterface(
-                   C3RadiationPressureSettings, C3_NAME, bodies
-               )
+    bodies.at(dC3Name)->setRadiationPressureInterface(
+        "Sun", simulation_setup::createRadiationPressureInterface(C3RadiationPressureSettings, dC3Name, bodies)
     );
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -132,7 +139,7 @@ int main()
 
     // Define bodies to propagate
     LOG("Defining bodies to propagate");
-    std::vector<std::string> bodiesToPropagate{C3_NAME};
+    std::vector<std::string> bodiesToPropagate{dC3Name};
 
     // Define central bodies
     LOG("Defining central bodies");
@@ -140,51 +147,83 @@ int main()
 
     // Create acceleration model
     LOG("Creating acceleration model");
-    std::map<std::string, std::vector<std::shared_ptr<simulation_setup::AccelerationSettings>>>
-        accelerationsOfC3{
-            {"Sun",
-             {
-                 simulation_setup::cannonBallRadiationPressureAcceleration(),
-                 simulation_setup::pointMassGravityAcceleration(),
-             }},
-            {"Earth",
-             {
-                 simulation_setup::aerodynamicAcceleration(),
-                 simulation_setup::sphericalHarmonicAcceleration(5, 5),
-             }},
-            {"Moon",
-             {
-                 simulation_setup::pointMassGravityAcceleration(),
-             }},
-            {"Mars",
-             {
-                 simulation_setup::pointMassGravityAcceleration(),
-             }},
-            {"Venus",
-             {
-                 simulation_setup::pointMassGravityAcceleration(),
-             }}};
+    std::map<std::string, std::vector<std::shared_ptr<simulation_setup::AccelerationSettings>>> accelerationsOfC3 = {
+        {"Sun",
+         {
+             simulation_setup::cannonBallRadiationPressureAcceleration(),
+             simulation_setup::pointMassGravityAcceleration(),
+         }},
+        {"Earth",
+         {
+             simulation_setup::aerodynamicAcceleration(),
+             simulation_setup::sphericalHarmonicAcceleration(5, 5),
+         }},
+        {"Moon",
+         {
+             simulation_setup::pointMassGravityAcceleration(),
+         }},
+        {"Mars",
+         {
+             simulation_setup::pointMassGravityAcceleration(),
+         }},
+        {"Venus",
+         {
+             simulation_setup::pointMassGravityAcceleration(),
+         }}};
 
-    simulation_setup::SelectedAccelerationMap accelerationSettings{{C3_NAME, accelerationsOfC3}};
+    simulation_setup::SelectedAccelerationMap accelerationSettings{{dC3Name, accelerationsOfC3}};
 
     // Create acceleration models
     LOG("Creating acceleration models");
     basic_astrodynamics::AccelerationMap accelerationSettingsOfC3 =
-        simulation_setup::createAccelerationModelsMap(
-            bodies, accelerationSettings, bodiesToPropagate, centralBodies
-        );
+        simulation_setup::createAccelerationModelsMap(bodies, accelerationSettings, bodiesToPropagate, centralBodies);
 
     // Define initial state
     LOG("Defining initial state");
-    WARN("Not implemented yet");
     Eigen::Vector6d InitialState = orbital_element_conversions::convertKeplerianToCartesianElements(
-        7500.0e3, 0.1, deg2Rad(85.3), deg2Rad(85.3), deg2Rad(85.3), deg2Rad(85.3),
+        dC3InitialSemiMajorAxis,
+        dC3InitialEccentricity,
+        dC3InitialInclination,
+        dC3InitialRAAN,
+        dC3InitialArgOfPeri,
+        C3_INITIAL_TRUE_ANOMALY,
         bodies.at("Earth")->getGravityFieldModel()->getGravitationalParameter()
     );
 
     // Define Dependent Variables to save
     LOG("Defining dependent variables to save");
-    WARN("Not implemented yet");
+    std::vector<std::shared_ptr<propagators::SingleDependentVariableSaveSettings>> dependentVariablesToSave = {
+        propagators::totalAccelerationDependentVariable(dC3Name),
+        propagators::keplerianStateDependentVariable(dC3Name, "Earth"),
+        propagators::latitudeDependentVariable(dC3Name, "Earth"),
+        propagators::longitudeDependentVariable(dC3Name, "Earth"),
+        propagators::singleAccelerationNormDependentVariable(
+            basic_astrodynamics::AvailableAcceleration::point_mass_gravity, dC3Name, "Sun"
+        ),
+        propagators::singleAccelerationNormDependentVariable(
+            basic_astrodynamics::AvailableAcceleration::point_mass_gravity, dC3Name, "Moon"
+        ),
+        propagators::singleAccelerationNormDependentVariable(
+            basic_astrodynamics::AvailableAcceleration::point_mass_gravity, dC3Name, "Mars"
+        ),
+        propagators::singleAccelerationNormDependentVariable(
+            basic_astrodynamics::AvailableAcceleration::point_mass_gravity, dC3Name, "Venus"
+        ),
+        propagators::singleAccelerationNormDependentVariable(
+            basic_astrodynamics::AvailableAcceleration::spherical_harmonic_gravity, dC3Name, "Earth"
+        ),
+        propagators::singleAccelerationNormDependentVariable(
+            basic_astrodynamics::AvailableAcceleration::aerodynamic, dC3Name, "Earth"
+        ),
+        propagators::singleAccelerationNormDependentVariable(
+            basic_astrodynamics::AvailableAcceleration::cannon_ball_radiation_pressure, dC3Name, "Sun"
+        ),
+    };
+
+    // Create termination settings
+    LOG("Creating termination settings");
+    std::shared_ptr<propagators::PropagationTerminationSettings> terminationSettings =
+        propagators::propagationTimeTerminationSettings(simulationEndEpoch);
 
     // Create propagator settings
     LOG("Creating integrator and propagator settings");
