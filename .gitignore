@@ -1,6 +1,7 @@
 # My additions
 **/build
 *err
+**/.vscode 
 
 # ------ Template C++ -----
 # Prerequisites
