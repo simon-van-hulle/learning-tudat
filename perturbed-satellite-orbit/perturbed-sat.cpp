@@ -74,6 +74,11 @@ const propagators::TranslationalPropagatorType propagatorTranslationalType = pro
 // Magic numbers
 const double envSetupTimeBuffer = 300.0;
 
+// File output
+const std::string dirOutput = "simulationOutput";
+const std::string fileDepVar = "depvar.dat";
+const std::string fileState = "state.dat";
+
 } // namespace
 
 //
@@ -255,14 +260,24 @@ int main()
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     LOG_TITLE("Propagating the orbit");
 
-    // Create simulation object and propagate dynamics.
+    // Create dynamics simulator
+    LOG("Creating dynamics simulator")
+    propagators::SingleArcDynamicsSimulator<> dynamicsSimulator(bodies, propagatorSettings);
+
+    // Extract state histories
     LOG("Creating simulation object");
+    std::map<double, Eigen::VectorXd> numericalSolution = dynamicsSimulator.getEquationsOfMotionNumericalSolution();
+    std::map<double, Eigen::VectorXd> dependentVariableHistory = dynamicsSimulator.getDependentVariableHistory();
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //                              SAVING THE RESULTS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     LOG_TITLE("Saving the results");
-    LOG("Saving to <file name>");
+    LOG("Saving to", dirOutput, "/", fileState);
+    input_output::writeDataMapToTextFile( numericalSolution,fileState, dirOutput );
+    
+    LOG("Saving to", dirOutput, "/", fileDepVar);
+    input_output::writeDataMapToTextFile( dependentVariableHistory,fileDepVar, dirOutput );
 
     // End of simulation
     LOG_DONE();
