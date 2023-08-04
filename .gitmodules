@@ -1,3 +1,0 @@
-[submodule "perturbed-satellite-orbit/tudatpy-examples"]
-	path = perturbed-satellite-orbit/tudatpy-examples
-	url = git@github.com:tudat-team/tudatpy-examples.git
