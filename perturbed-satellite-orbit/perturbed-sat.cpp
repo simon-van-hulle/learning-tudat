@@ -22,7 +22,7 @@
 // #include "tudat/math/interpolators/linearInterpolator.h"
 #include "tudat/simulation/environment_setup/createBodies.h"
 #include "tudat/simulation/environment_setup/defaultBodies.h"
-// #include "tudat/simulation/estimation_setup/createNumericalSimulator.h"
+#include "tudat/simulation/estimation_setup/createNumericalSimulator.h"
 
 #define deg2Rad unit_conversions::convertDegreesToRadians
 #define ENABLE_LOGGING
@@ -58,7 +58,16 @@ const double dC3InitialEccentricity = 0.1;
 const double dC3InitialInclination = deg2Rad(85.3);
 const double dC3InitialRAAN = deg2Rad(235.7);
 const double dC3InitialArgOfPeri = deg2Rad(23.4);
-const double C3_INITIAL_TRUE_ANOMALY = deg2Rad(139.87);
+const double dC3InitialTrueAnomaly = deg2Rad(139.87);
+
+// Integrator parameters
+const double integratorFixedStepSize = 10.0;
+const numerical_integrators::CoefficientSets integratorCoefficientSet =
+    numerical_integrators::CoefficientSets::rungeKutta4Classic;
+
+// Propagator parameters
+const propagators::TranslationalPropagatorType propagatorTranslationalType =
+    propagators::TranslationalPropagatorType::cowell;
 
 // Magic numbers
 const double envSetupTimeBuffer = 300.0;
@@ -180,15 +189,19 @@ int main()
 
     // Define initial state
     LOG("Defining initial state");
+
+    double earthGravitationalParameter = bodies.at("Earth")->getGravityFieldModel()->getGravitationalParameter();
     Eigen::Vector6d InitialState = orbital_element_conversions::convertKeplerianToCartesianElements(
         dC3InitialSemiMajorAxis,
         dC3InitialEccentricity,
         dC3InitialInclination,
         dC3InitialRAAN,
         dC3InitialArgOfPeri,
-        C3_INITIAL_TRUE_ANOMALY,
-        bodies.at("Earth")->getGravityFieldModel()->getGravitationalParameter()
+        dC3InitialTrueAnomaly,
+        earthGravitationalParameter
     );
+
+    LOG("Initial state: ", vectorToString(InitialState));
 
     // Define Dependent Variables to save
     LOG("Defining dependent variables to save");
@@ -225,9 +238,25 @@ int main()
     std::shared_ptr<propagators::PropagationTerminationSettings> terminationSettings =
         propagators::propagationTimeTerminationSettings(simulationEndEpoch);
 
+    // Create integrator settings
+    LOG("Creating integrator settings");
+    std::shared_ptr<numerical_integrators::IntegratorSettings<double>> integratorSettings =
+        numerical_integrators::rungeKuttaFixedStepSettings(integratorFixedStepSize, integratorCoefficientSet);
+
     // Create propagator settings
     LOG("Creating integrator and propagator settings");
-    WARN("Not implemented yet");
+    // std::shared_ptr<propagators::TranslationalStatePropagatorSettings<double, double>> propagatorSettings =
+    //     propagators::translationalStatePropagatorSettings(
+    //         centralBodies,
+    //         accelerationSettingsOfC3,
+    //         bodiesToPropagate,
+    //         InitialState,
+    //         simulationStartEpoch,
+    //         integratorSettings,
+    //         terminationSettings,
+    //         propagatorTranslationalType,
+    //         dependentVariablesToSave
+    //     );
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //                              ORBIT PROPAGATION

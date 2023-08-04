@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 
 #ifdef ENABLE_LOGGING
 #define LOG(...) log_strings(__VA_ARGS__);
@@ -39,4 +40,40 @@ template <typename T, typename... Args> void log_strings(T&& str, Args&&... args
 {
     std::cout << str;
     log_strings(std::forward<Args>(args)...);
+}
+
+
+
+
+// Function to convert a vector to a string
+template<typename T>
+std::string vectorToString(const std::vector<T>& myVector) {
+    std::stringstream ss;
+    ss << "[";
+    for (size_t i = 0; i < myVector.size(); ++i) {
+        ss << myVector[i];
+        if (i < myVector.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "]";
+    return ss.str();
+}
+
+// Overload for Eigen vectors
+template<typename Derived>
+std::string vectorToString(const Eigen::MatrixBase<Derived>& eigenVector) {
+    static_assert(Derived::ColsAtCompileTime == 1,
+                  "vectorToString only works with column vectors (1 column).");
+
+    std::stringstream ss;
+    ss << "[";
+    for (Eigen::Index i = 0; i < eigenVector.rows(); ++i) {
+        ss << eigenVector(i);
+        if (i < eigenVector.rows() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "]";
+    return ss.str();
 }
