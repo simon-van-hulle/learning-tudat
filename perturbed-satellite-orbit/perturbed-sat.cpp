@@ -191,7 +191,7 @@ int main()
     LOG("Defining initial state");
 
     double earthGravitationalParameter = bodies.at("Earth")->getGravityFieldModel()->getGravitationalParameter();
-    Eigen::Vector6d InitialState = orbital_element_conversions::convertKeplerianToCartesianElements(
+    Eigen::VectorXd initialState = orbital_element_conversions::convertKeplerianToCartesianElements(
         dC3InitialSemiMajorAxis,
         dC3InitialEccentricity,
         dC3InitialInclination,
@@ -201,7 +201,7 @@ int main()
         earthGravitationalParameter
     );
 
-    LOG("Initial state: ", vectorToString(InitialState));
+    LOG("Initial state: ", vectorToString(initialState));
 
     // Define Dependent Variables to save
     LOG("Defining dependent variables to save");
@@ -245,18 +245,18 @@ int main()
 
     // Create propagator settings
     LOG("Creating integrator and propagator settings");
-    // std::shared_ptr<propagators::TranslationalStatePropagatorSettings<double, double>> propagatorSettings =
-    //     propagators::translationalStatePropagatorSettings(
-    //         centralBodies,
-    //         accelerationSettingsOfC3,
-    //         bodiesToPropagate,
-    //         InitialState,
-    //         simulationStartEpoch,
-    //         integratorSettings,
-    //         terminationSettings,
-    //         propagatorTranslationalType,
-    //         dependentVariablesToSave
-    //     );
+    std::shared_ptr<propagators::TranslationalStatePropagatorSettings<double, double>> propagatorSettings =
+        propagators::translationalStatePropagatorSettings(
+            centralBodies,
+            accelerationSettingsOfC3,
+            bodiesToPropagate,
+            initialState, // Not sure if this is the best thing to do.
+            simulationStartEpoch,
+            integratorSettings,
+            terminationSettings,
+            propagatorTranslationalType,
+            dependentVariablesToSave
+        );
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     //                              ORBIT PROPAGATION
