@@ -47,6 +47,10 @@ namespace {
 const double simulationStartEpoch = 0.0 * physical_constants::JULIAN_DAY;
 const double simulationEndEpoch = 1.0 * physical_constants::JULIAN_DAY;
 
+// Environment
+std::string frameOrigin = "SSB";
+std::string frameOrientation = "ECLIPJ2000";
+
 // DelfiC3
 const std::string dC3Name = "DelfiC3";
 const double dC3Mass = 400.0;
@@ -103,10 +107,6 @@ int main()
     LOG("Creating Bodies");
     //  Define string names for bodies to be created from default.
     std::vector<std::string> bodiesToCreate{"Sun", "Earth", "Moon", "Mars", "Venus"};
-
-    // Use "Earth"/"J2000" as global frame origin and orientation.
-    std::string frameOrigin = "SSB";
-    std::string frameOrientation = "ECLIPJ2000";
 
     // Create default body settings, usually from `spice`.
     simulation_setup::BodyListSettings bodySettings = simulation_setup::getDefaultBodySettings(
@@ -171,33 +171,25 @@ int main()
          }},
         {"Earth",
          {
-             simulation_setup::aerodynamicAcceleration(),
              simulation_setup::sphericalHarmonicAcceleration(5, 5),
+             simulation_setup::aerodynamicAcceleration(),
          }},
-        {"Moon",
-         {
-             simulation_setup::pointMassGravityAcceleration(),
-         }},
-        {"Mars",
-         {
-             simulation_setup::pointMassGravityAcceleration(),
-         }},
-        {"Venus",
-         {
-             simulation_setup::pointMassGravityAcceleration(),
-         }}};
+        {"Moon", {simulation_setup::pointMassGravityAcceleration()}},
+        {"Mars", {simulation_setup::pointMassGravityAcceleration()}},
+        {"Venus", {simulation_setup::pointMassGravityAcceleration()}},
+    };
 
     simulation_setup::SelectedAccelerationMap accelerationSettings{{dC3Name, accelerationsOfC3}};
 
     // Create acceleration models
     LOG("Creating acceleration models");
-    basic_astrodynamics::AccelerationMap accelerationSettingsOfC3 =
+    basic_astrodynamics::AccelerationMap accelerationModels =
         simulation_setup::createAccelerationModelsMap(bodies, accelerationSettings, bodiesToPropagate, centralBodies);
 
     // Define initial state
     LOG("Defining initial state");
 
-    double earthGravitationalParameter = bodies.at("Earth")->getGravityFieldModel()->getGravitationalParameter();
+    double earthGravitationalParameter = bodies.at("Earth")->getGravitationalParameter();
     Eigen::VectorXd initialState = orbital_element_conversions::convertKeplerianToCartesianElements(
         dC3InitialSemiMajorAxis,
         dC3InitialEccentricity,
@@ -233,19 +225,20 @@ int main()
     // Create termination settings
     LOG("Creating termination settings");
     std::shared_ptr<propagators::PropagationTerminationSettings> terminationSettings =
-        propagators::propagationTimeTerminationSettings(simulationEndEpoch);
+        propagators::propagationTimeTerminationSettings(simulationEndEpoch, true);
 
     // Create integrator settings
     LOG("Creating integrator settings");
     std::shared_ptr<numerical_integrators::IntegratorSettings<double>> integratorSettings =
-        numerical_integrators::rungeKuttaFixedStepSettings(integratorFixedStepSize, integratorCoefficientSet);
+        numerical_integrators::rungeKutta4Settings(integratorFixedStepSize);
+    // numerical_integrators::rungeKuttaFixedStepSettings(integratorFixedStepSize, integratorCoefficientSet);
 
     // Create propagator settings
-    LOG("Creating integrator and propagator settings");
+    LOG("Creating propagator settings");
     std::shared_ptr<propagators::TranslationalStatePropagatorSettings<double, double>> propagatorSettings =
         propagators::translationalStatePropagatorSettings(
             centralBodies,
-            accelerationSettingsOfC3,
+            accelerationModels,
             bodiesToPropagate,
             initialState, // Not sure if this is the best thing to do.
             simulationStartEpoch,
@@ -274,10 +267,10 @@ int main()
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     LOG_TITLE("Saving the results");
     LOG("Saving to ", dirOutput, "/", fileState);
-    input_output::writeDataMapToTextFile<double, Eigen::VectorXd>(numericalSolution, fileState, dirOutput);
+    input_output::writeDataMapToTextFile<>(numericalSolution, fileState, dirOutput);
 
     LOG("Saving to ", dirOutput, "/", fileDepVar);
-    input_output::writeDataMapToTextFile<double, Eigen::VectorXd>(dependentVariableHistory, fileDepVar, dirOutput);
+    input_output::writeDataMapToTextFile<>(dependentVariableHistory, fileDepVar, dirOutput);
 
     // End of simulation
     LOG_DONE();

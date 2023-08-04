@@ -227,7 +227,7 @@ Then, the translational propagator settings are defined. These are used to simul
 """
 
 # Create termination settings
-termination_condition = propagation_setup.propagator.time_termination(simulation_end_epoch)
+termination_condition = propagation_setup.propagator.time_termination(simulation_end_epoch, True)
 
 # Create numerical integrator settings
 fixed_step_size = 10.0
@@ -274,4 +274,4 @@ save2txt(states, file_state, dir_output)
 
 dep_vars = dynamics_simulator.dependent_variable_history
 print(f"Saving results to {dir_output}/{file_dep_var}")
-save2txt(states, file_dep_var, dir_output)
+save2txt(dep_vars, file_dep_var, dir_output)
