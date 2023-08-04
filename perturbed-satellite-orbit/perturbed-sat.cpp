@@ -24,6 +24,10 @@
 #include "tudat/simulation/environment_setup/defaultBodies.h"
 #include "tudat/simulation/estimation_setup/createNumericalSimulator.h"
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//                               SETUP AND UTILS
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 #define deg2Rad unit_conversions::convertDegreesToRadians
 #define ENABLE_LOGGING
 #include "logging.h"
@@ -62,12 +66,10 @@ const double dC3InitialTrueAnomaly = deg2Rad(139.87);
 
 // Integrator parameters
 const double integratorFixedStepSize = 10.0;
-const numerical_integrators::CoefficientSets integratorCoefficientSet =
-    numerical_integrators::CoefficientSets::rungeKutta4Classic;
+const numerical_integrators::CoefficientSets integratorCoefficientSet = numerical_integrators::rungeKutta4Classic;
 
 // Propagator parameters
-const propagators::TranslationalPropagatorType propagatorTranslationalType =
-    propagators::TranslationalPropagatorType::cowell;
+const propagators::TranslationalPropagatorType propagatorTranslationalType = propagators::cowell;
 
 // Magic numbers
 const double envSetupTimeBuffer = 300.0;
@@ -210,26 +212,16 @@ int main()
         propagators::keplerianStateDependentVariable(dC3Name, "Earth"),
         propagators::latitudeDependentVariable(dC3Name, "Earth"),
         propagators::longitudeDependentVariable(dC3Name, "Earth"),
+        propagators::singleAccelerationNormDependentVariable(basic_astrodynamics::point_mass_gravity, dC3Name, "Sun"),
+        propagators::singleAccelerationNormDependentVariable(basic_astrodynamics::point_mass_gravity, dC3Name, "Moon"),
+        propagators::singleAccelerationNormDependentVariable(basic_astrodynamics::point_mass_gravity, dC3Name, "Mars"),
+        propagators::singleAccelerationNormDependentVariable(basic_astrodynamics::point_mass_gravity, dC3Name, "Venus"),
         propagators::singleAccelerationNormDependentVariable(
-            basic_astrodynamics::AvailableAcceleration::point_mass_gravity, dC3Name, "Sun"
+            basic_astrodynamics::spherical_harmonic_gravity, dC3Name, "Earth"
         ),
+        propagators::singleAccelerationNormDependentVariable(basic_astrodynamics::aerodynamic, dC3Name, "Earth"),
         propagators::singleAccelerationNormDependentVariable(
-            basic_astrodynamics::AvailableAcceleration::point_mass_gravity, dC3Name, "Moon"
-        ),
-        propagators::singleAccelerationNormDependentVariable(
-            basic_astrodynamics::AvailableAcceleration::point_mass_gravity, dC3Name, "Mars"
-        ),
-        propagators::singleAccelerationNormDependentVariable(
-            basic_astrodynamics::AvailableAcceleration::point_mass_gravity, dC3Name, "Venus"
-        ),
-        propagators::singleAccelerationNormDependentVariable(
-            basic_astrodynamics::AvailableAcceleration::spherical_harmonic_gravity, dC3Name, "Earth"
-        ),
-        propagators::singleAccelerationNormDependentVariable(
-            basic_astrodynamics::AvailableAcceleration::aerodynamic, dC3Name, "Earth"
-        ),
-        propagators::singleAccelerationNormDependentVariable(
-            basic_astrodynamics::AvailableAcceleration::cannon_ball_radiation_pressure, dC3Name, "Sun"
+            basic_astrodynamics::cannon_ball_radiation_pressure, dC3Name, "Sun"
         ),
     };
 
