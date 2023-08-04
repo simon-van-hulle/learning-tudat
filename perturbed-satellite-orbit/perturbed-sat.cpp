@@ -75,7 +75,7 @@ const propagators::TranslationalPropagatorType propagatorTranslationalType = pro
 const double envSetupTimeBuffer = 300.0;
 
 // File output
-const std::string dirOutput = "simulationOutput";
+const std::string dirOutput = "output/cpp";
 const std::string fileDepVar = "depvar.dat";
 const std::string fileState = "state.dat";
 
@@ -273,11 +273,11 @@ int main()
     //                              SAVING THE RESULTS
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     LOG_TITLE("Saving the results");
-    LOG("Saving to", dirOutput, "/", fileState);
-    input_output::writeDataMapToTextFile( numericalSolution,fileState, dirOutput );
-    
-    LOG("Saving to", dirOutput, "/", fileDepVar);
-    input_output::writeDataMapToTextFile( dependentVariableHistory,fileDepVar, dirOutput );
+    LOG("Saving to ", dirOutput, "/", fileState);
+    input_output::writeDataMapToTextFile<double, Eigen::VectorXd>(numericalSolution, fileState, dirOutput);
+
+    LOG("Saving to ", dirOutput, "/", fileDepVar);
+    input_output::writeDataMapToTextFile<double, Eigen::VectorXd>(dependentVariableHistory, fileDepVar, dirOutput);
 
     // End of simulation
     LOG_DONE();

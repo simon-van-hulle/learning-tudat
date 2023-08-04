@@ -65,7 +65,7 @@ TUDAT_LIBS_BASE := \
 
 
 # Libraries to link
-LDLIBS := $(TUDAT_LIBS)	$(TUDAT_LIBS_BASE) -lm -lcspice -lsofa
+LDLIBS := $(TUDAT_LIBS)	$(TUDAT_LIBS_BASE) -lm -lcspice -lsofa -lboost_filesystem -lboost_system
 
 # Library paths
 RPATH := -Wl,-rpath,$(CONDA_PREFIX)/lib
