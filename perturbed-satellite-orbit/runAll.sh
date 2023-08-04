@@ -50,10 +50,11 @@ empty_lines 2
 empty_lines 2   
 line
 echo Standardising output .dat files for comparison
+../utils/standardDatFile.sh output/*/*.dat
 echo Press enter to continue
 read continue
-../utils/standardDatFile.sh output/*/*.dat
 empty_lines 2
+
 
 line
 echo Comparing state history
