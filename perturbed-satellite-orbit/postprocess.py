@@ -27,8 +27,8 @@ outputdir = "output"
 state_diff = ((states_array_cpp - states_array_python) / states_array_cpp)
 dep_var_diff = ((dep_vars_array_cpp - dep_vars_array_python) / dep_vars_array_cpp)
 
-state_diff = state_diff[np.abs(state_diff) < 50]
-dep_var_diff = dep_var_diff[np.abs(dep_var_diff) < 50]
+state_diff = state_diff[np.abs(state_diff) < 5]
+dep_var_diff = dep_var_diff[np.abs(dep_var_diff) < 5]
 
 plt.figure(figsize=(9, 5))
 plt.hist(dep_var_diff.flatten(), alpha=0.5,  bins=100, label="Dependent variables", log=True)

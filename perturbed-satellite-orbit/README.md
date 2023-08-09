@@ -32,13 +32,12 @@ python postprocess.py
 ```
 
 
-> **Alternatively**, you can use the `./runAll`, which does all of the steps mentioned above.
-{.is-warning}
+**Alternatively**, you can use the `./runAll`, which does all of the steps mentioned above.
 
 
 
 ## Result
 
 
-
+The image below shows the differences in the output from the C++ and Python code. More plots can be found in the [output/](./output/) directory after running the postprocessing.
 ![Relative Differences](figs/relative_difference.png)
