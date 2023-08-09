@@ -1,6 +1,6 @@
 # My additions
 **/build
-**/output
+# **/output
 *err
 *log
 **/.vscode 
