@@ -31,7 +31,13 @@ check_first_lines_equal() {
 
 # Tell what the script will do and ask if the user wants to continue
 
-
+echo This script will do the following:
+echo 1. Build the C++ code
+echo 2. Run the C++ code
+echo 3. Run the Python code
+echo 4. Compare the output of the C++ and Python code
+echo 5. Postprocess the output of the C++ and Python code
+echo
 echo Press enter to continue
 read continue
 
@@ -51,8 +57,6 @@ empty_lines 2
 line
 echo Standardising output .dat files for comparison
 ../utils/standardDatFile.sh output/*/*.dat
-echo Press enter to continue
-read continue
 empty_lines 2
 
 
@@ -69,4 +73,8 @@ depvar_diff=$(diff output/**/depvar.dat | tee output/depvar_diff.dat | wc -l) &&
 echo Length of depvar.dat diff: $depvar_diff
 check_first_lines_equal output/python/depvar.dat output/cpp/depvar.dat
 
-echo 
+empty_lines 5
+
+python postprocess.py
+echo Postprocessing is done for both the C++ and Python results and written to respective subdirectories
+line
