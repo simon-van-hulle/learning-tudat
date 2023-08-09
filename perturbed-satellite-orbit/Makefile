@@ -47,7 +47,7 @@ TUDAT_LIBS := \
 	-ltudat_geometric_shapes \
 
 TUDAT_LIBS_BASE := \
-	 -ltudat_spice_interface \
+	-ltudat_spice_interface \
 	-ltudat_gravitation \
 	-ltudat_ephemerides \
 	-ltudat_earth_orientation \

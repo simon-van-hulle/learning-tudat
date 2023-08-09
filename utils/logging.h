@@ -2,14 +2,16 @@
 
 #include <string>
 #include <sstream>
+#include <Eigen/Core>
 
-#ifdef ENABLE_LOGGING
+#ifndef DISABLE_LOGGING
+
 #define LOG(...) log_strings(__VA_ARGS__);
 #define LOG_HLINE() std::cout << std::string(80, '-') << std::endl;
 #define LOG_DOUBLE_HLINE() std::cout << std::string(80, '=') << std::endl;
 #define LOG_START()                                                                                \
     LOG_DOUBLE_HLINE();                                                                            \
-    LOG("Starting Program");                                                                       \
+    LOG("Starting main function in ", __FILE__);                                                                       \
     LOG_HLINE();
 #define LOG_DONE()                                                                                 \
     LOG("\n\nDone.");                                                                              \
@@ -35,13 +37,14 @@
 
 #endif
 
+// Function to log any number of strings to stdout
+
 template <typename T> void log_strings(T&& str) { std::cout << str << std::endl; }
 template <typename T, typename... Args> void log_strings(T&& str, Args&&... args)
 {
     std::cout << str;
     log_strings(std::forward<Args>(args)...);
 }
-
 
 
 

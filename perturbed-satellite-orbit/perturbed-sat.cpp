@@ -28,15 +28,12 @@
 //                               SETUP AND UTILS
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#define deg2Rad unit_conversions::convertDegreesToRadians
-#define ENABLE_LOGGING
+// #define DISABLE_LOGGING
 #include "logging.h"
+#define deg2Rad unit_conversions::convertDegreesToRadians
 
+// Here, I specifically chose not to use other namespaces, to make it clear where they all the functions come from.
 using namespace tudat;
-// using namespace simulation_setup;
-// using namespace basic_astrodynamics;
-// using namespace input_output;
-// using namespace reference_frames;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //                   GENERAL CONFIGURATION AND MAGIC NUMBERS
@@ -82,7 +79,6 @@ const double envSetupTimeBuffer = 300.0;
 const std::string dirOutput = "output/cpp";
 const std::string fileDepVar = "depvar.dat";
 const std::string fileState = "state.dat";
-
 } // namespace
 
 //
